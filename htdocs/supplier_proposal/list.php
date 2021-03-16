@@ -152,7 +152,7 @@ $arrayfields = array(
 	'sp.date_valid'=>array('label'=>$langs->trans("Date"), 'checked'=>1),
 	'sp.date_livraison'=>array('label'=>$langs->trans("DateEnd"), 'checked'=>1),
 	'sp.total_ht'=>array('label'=>$langs->trans("AmountHT"), 'checked'=>1),
-	'sp.total_vat'=>array('label'=>$langs->trans("AmountVAT"), 'checked'=>0),
+	'sp.total_tva'=>array('label'=>$langs->trans("AmountVAT"), 'checked'=>0),
 	'sp.total_ttc'=>array('label'=>$langs->trans("AmountTTC"), 'checked'=>0),
 	'sp.multicurrency_code'=>array('label'=>'Currency', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : 1)),
 	'sp.multicurrency_tx'=>array('label'=>'CurrencyRate', 'checked'=>0, 'enabled'=>(empty($conf->multicurrency->enabled) ? 0 : 1)),
@@ -253,7 +253,7 @@ if ($sall || $search_product_category > 0 || $search_user > 0) $sql = 'SELECT DI
 $sql .= ' s.rowid as socid, s.nom as name, s.town, s.zip, s.fk_pays, s.client, s.code_client,';
 $sql .= " typent.code as typent_code,";
 $sql .= " state.code_departement as state_code, state.nom as state_name,";
-$sql .= ' sp.rowid, sp.note_private, sp.total_ht, sp.tva as total_vat, sp.total as total_ttc, sp.localtax1, sp.localtax2, sp.ref, sp.fk_statut as status, sp.fk_user_author, sp.date_valid, sp.date_livraison as dp,';
+$sql .= ' sp.rowid, sp.note_private, sp.total_ht, sp.total_tva, sp.total_ttc, sp.localtax1, sp.localtax2, sp.ref, sp.fk_statut as status, sp.fk_user_author, sp.date_valid, sp.date_livraison as dp,';
 $sql .= ' sp.fk_multicurrency, sp.multicurrency_code, sp.multicurrency_tx, sp.multicurrency_total_ht, sp.multicurrency_total_tva as multicurrency_total_vat, sp.multicurrency_total_ttc,';
 $sql .= ' sp.datec as date_creation, sp.tms as date_update,';
 $sql .= " p.rowid as project_id, p.ref as project_ref,";
@@ -294,13 +294,13 @@ if ($search_town)  $sql .= natural_search('s.town', $search_town);
 if ($search_zip)   $sql .= natural_search("s.zip", $search_zip);
 if ($search_state) $sql .= natural_search("state.nom", $search_state);
 if ($search_country) $sql .= " AND s.fk_pays IN (".$search_country.')';
-if ($search_type_thirdparty) $sql .= " AND s.fk_typent IN (".$search_type_thirdparty.')';
+if ($search_type_thirdparty != '' && $search_type_thirdparty > 0) $sql .= " AND s.fk_typent IN (".$search_type_thirdparty.')';
 if ($search_ref)     $sql .= natural_search('sp.ref', $search_ref);
 if ($search_societe) $sql .= natural_search('s.nom', $search_societe);
 if ($search_login)  $sql .= natural_search('u.login', $search_login);
 if ($search_montant_ht) $sql .= natural_search('sp.total_ht=', $search_montant_ht, 1);
-if ($search_montant_vat != '') $sql .= natural_search("sp.tva", $search_montant_vat, 1);
-if ($search_montant_ttc != '') $sql .= natural_search("sp.total", $search_montant_ttc, 1);
+if ($search_montant_vat != '') $sql .= natural_search("sp.total_tva", $search_montant_vat, 1);
+if ($search_montant_ttc != '') $sql .= natural_search("sp.total_ttc", $search_montant_ttc, 1);
 if ($search_multicurrency_code != '')        $sql .= ' AND sp.multicurrency_code = "'.$db->escape($search_multicurrency_code).'"';
 if ($search_multicurrency_tx != '')          $sql .= natural_search('sp.multicurrency_tx', $search_multicurrency_tx, 1);
 if ($search_multicurrency_montant_ht != '')  $sql .= natural_search('sp.multicurrency_total_ht', $search_multicurrency_montant_ht, 1);
@@ -395,6 +395,7 @@ if ($resql)
 	if ($socid > 0)          $param .= '&socid='.urlencode($socid);
 	if ($search_status != '') $param .= '&search_status='.urlencode($search_status);
 	if ($optioncss != '') $param .= '&optioncss='.urlencode($optioncss);
+	if ($search_type_thirdparty != '' && $search_type_thirdparty > 0)   $param .= '&search_type_thirdparty='.urlencode($search_type_thirdparty);
 	// Add $param from extra fields
 	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_list_search_param.tpl.php';
 
@@ -518,7 +519,7 @@ if ($resql)
 	if (!empty($arrayfields['typent.code']['checked']))
 	{
 		print '<td class="liste_titre maxwidthonsmartphone center">';
-		print $form->selectarray("search_type_thirdparty", $formcompany->typent_array(0), $search_type_thirdparty, 0, 0, 0, '', 0, 0, 0, (empty($conf->global->SOCIETE_SORT_ON_TYPEENT) ? 'ASC' : $conf->global->SOCIETE_SORT_ON_TYPEENT));
+		print $form->selectarray("search_type_thirdparty", $formcompany->typent_array(0), $search_type_thirdparty, 1, 0, 0, '', 0, 0, 0, (empty($conf->global->SOCIETE_SORT_ON_TYPEENT) ? 'ASC' : $conf->global->SOCIETE_SORT_ON_TYPEENT), '', 1);
 		print '</td>';
 	}
 	// Date
@@ -551,7 +552,7 @@ if ($resql)
 		print '<input class="flat" type="text" size="5" name="search_montant_ht" value="'.dol_escape_htmltag($search_montant_ht).'">';
 		print '</td>';
 	}
-	if (!empty($arrayfields['sp.total_vat']['checked']))
+	if (!empty($arrayfields['sp.total_tva']['checked']))
 	{
 		// Amount
 		print '<td class="liste_titre right">';
@@ -652,7 +653,7 @@ if ($resql)
 	if (!empty($arrayfields['sp.date_valid']['checked']))      print_liste_field_titre($arrayfields['sp.date_valid']['label'], $_SERVER["PHP_SELF"], 'sp.date_valid', '', $param, '', $sortfield, $sortorder, 'center ');
 	if (!empty($arrayfields['sp.date_livraison']['checked']))  print_liste_field_titre($arrayfields['sp.date_livraison']['label'], $_SERVER["PHP_SELF"], 'sp.date_livraison', '', $param, '', $sortfield, $sortorder, 'center ');
 	if (!empty($arrayfields['sp.total_ht']['checked']))        print_liste_field_titre($arrayfields['sp.total_ht']['label'], $_SERVER["PHP_SELF"], 'sp.total_ht', '', $param, '', $sortfield, $sortorder, 'right ');
-	if (!empty($arrayfields['sp.total_vat']['checked']))       print_liste_field_titre($arrayfields['sp.total_vat']['label'], $_SERVER["PHP_SELF"], 'sp.total_vat', '', $param, '', $sortfield, $sortorder, 'right ');
+	if (!empty($arrayfields['sp.total_tva']['checked']))       print_liste_field_titre($arrayfields['sp.total_tva']['label'], $_SERVER["PHP_SELF"], 'sp.total_tva', '', $param, '', $sortfield, $sortorder, 'right ');
 	if (!empty($arrayfields['sp.total_ttc']['checked']))       print_liste_field_titre($arrayfields['sp.total_ttc']['label'], $_SERVER["PHP_SELF"], 'sp.total_ttc', '', $param, '', $sortfield, $sortorder, 'right ');
 	if (!empty($arrayfields['sp.multicurrency_code']['checked']))      print_liste_field_titre($arrayfields['sp.multicurrency_code']['label'], $_SERVER['PHP_SELF'], 'sp.multicurrency_code', '', $param, '', $sortfield, $sortorder);
 	if (!empty($arrayfields['sp.multicurrency_tx']['checked']))        print_liste_field_titre($arrayfields['sp.multicurrency_tx']['label'], $_SERVER['PHP_SELF'], 'sp.multicurrency_tx', '', $param, '', $sortfield, $sortorder);
@@ -802,12 +803,12 @@ if ($resql)
 			  $totalarray['val']['sp.total_ht'] += $obj->total_ht;
 		}
 		// Amount VAT
-		if (!empty($arrayfields['sp.total_vat']['checked']))
+		if (!empty($arrayfields['sp.total_tva']['checked']))
 		{
-			print '<td class="right">'.price($obj->total_vat)."</td>\n";
+			print '<td class="right">'.price($obj->total_tva)."</td>\n";
 			if (!$i) $totalarray['nbfield']++;
-			if (!$i) $totalarray['pos'][$totalarray['nbfield']] = 'sp.total_vat';
-			$totalarray['val']['sp.total_vat'] += $obj->total_vat;
+			if (!$i) $totalarray['pos'][$totalarray['nbfield']] = 'sp.total_tva';
+			$totalarray['val']['sp.total_tva'] += $obj->total_tva;
 		}
 		// Amount TTC
 		if (!empty($arrayfields['sp.total_ttc']['checked']))

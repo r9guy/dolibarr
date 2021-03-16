@@ -50,8 +50,7 @@ if ($action == "set")
 
 	$id = GETPOST('PAYMENTBYBANKTRANSFER_ID_BANKACCOUNT', 'int');
 	$account = new Account($db);
-	if ($account->fetch($id) > 0)
-	{
+	if ($account->fetch($id) > 0) {
 		$res = dolibarr_set_const($db, "PAYMENTBYBANKTRANSFER_ID_BANKACCOUNT", $id, 'chaine', 0, '', $conf->entity);
 		if (!($res > 0)) $error++;
 		/*
@@ -70,10 +69,13 @@ if ($action == "set")
         $res = dolibarr_set_const($db, "PRELEVEMENT_RAISON_SOCIALE", $account->proprio,'chaine',0,'',$conf->entity);
         if (! $res > 0) $error++;
         */
-	} else $error++;
-
+	} else {
+		$error++;
+	}
+	/* Moved to account
 	$res = dolibarr_set_const($db, "PAYMENTBYBANKTRANSFER_ICS", GETPOST("PAYMENTBYBANKTRANSFER_ICS"), 'chaine', 0, '', $conf->entity);
 	if (!($res > 0)) $error++;
+	*/
 
 	if (GETPOST("PAYMENTBYBANKTRANSFER_USER") > 0)
 	{
@@ -156,11 +158,13 @@ print '<td class="left">';
 $form->select_comptes($conf->global->PAYMENTBYBANKTRANSFER_ID_BANKACCOUNT, 'PAYMENTBYBANKTRANSFER_ID_BANKACCOUNT', 0, "courant=1", 1);
 print '</td></tr>';
 
+/* Moved to bank account data
 // ICS
 print '<tr class="oddeven"><td class="fieldrequired">'.$langs->trans("ICS").'</td>';
 print '<td class="left">';
 print '<input type="text" name="PAYMENTBYBANKTRANSFER_ICS" value="'.$conf->global->PAYMENTBYBANKTRANSFER_ICS.'" size="15" ></td>';
 print '</td></tr>';
+*/
 
 //User
 print '<tr class="oddeven"><td class="fieldrequired">'.$langs->trans("ResponsibleUser").'</td>';
@@ -277,9 +281,7 @@ foreach ($dirmodels as $reldir)
                             if ($module->version == 'development'  && $conf->global->MAIN_FEATURES_LEVEL < 2) $modulequalified=0;
                             if ($module->version == 'experimental' && $conf->global->MAIN_FEATURES_LEVEL < 1) $modulequalified=0;
 
-                            if ($modulequalified)
-                            {
-                                $var = !$var;
+                            if ($modulequalified) {
                                 print '<tr class="oddeven"><td width="100">';
                                 print (empty($module->name)?$name:$module->name);
                                 print "</td><td>\n";

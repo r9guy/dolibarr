@@ -726,6 +726,7 @@ $form = new Form($db);
 
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.newToken().'">';
+print '<input type="hidden" name="page_y" value="">';
 print '<input type="hidden" name="action" value="updateoptions">';
 
 print '<div class="div-table-responsive-no-min">';
@@ -753,7 +754,7 @@ if (!$conf->use_javascript_ajax)
 	);
 	print $form->selectarray("activate_COMPANY_USE_SEARCH_TO_SELECT", $arrval, $conf->global->COMPANY_USE_SEARCH_TO_SELECT, 0, 0, 0, '', 0, 0, 0, '', 'minwidth75imp');
 	print '</td><td class="right">';
-	print '<input type="submit" class="button" name="COMPANY_USE_SEARCH_TO_SELECT" value="'.$langs->trans("Modify").'">';
+	print '<input type="submit" class="button reposition" name="COMPANY_USE_SEARCH_TO_SELECT" value="'.$langs->trans("Modify").'">';
 	print "</td>";
 }
 print '</tr>';
@@ -775,7 +776,7 @@ if (!$conf->use_javascript_ajax)
 	);
 	print $form->selectarray("activate_CONTACT_USE_SEARCH_TO_SELECT", $arrval, $conf->global->CONTACT_USE_SEARCH_TO_SELECT, 0, 0, 0, '', 0, 0, 0, '', 'minwidth75imp');
 	print '</td><td class="right">';
-	print '<input type="submit" class="button" name="CONTACT_USE_SEARCH_TO_SELECT" value="'.$langs->trans("Modify").'">';
+	print '<input type="submit" class="button reposition" name="CONTACT_USE_SEARCH_TO_SELECT" value="'.$langs->trans("Modify").'">';
 	print "</td>";
 }
 print '</tr>';
@@ -784,7 +785,7 @@ print '</tr>';
 
 print '<tr class="oddeven">';
 print '<td width="80%">'.$langs->trans("AddRefInList").'</td>';
-print '<td>&nbsp</td>';
+print '<td>&nbsp;</td>';
 print '<td class="center">';
 if (!empty($conf->global->SOCIETE_ADD_REF_IN_LIST))
 {
@@ -799,7 +800,7 @@ print '</tr>';
 
 print '<tr class="oddeven">';
 print '<td width="80%">'.$langs->trans("AddAdressInList").'</td>';
-print '<td>&nbsp</td>';
+print '<td>&nbsp;</td>';
 print '<td class="center">';
 if (!empty($conf->global->COMPANY_SHOW_ADDRESS_SELECTLIST))
 {
@@ -814,7 +815,7 @@ print '</tr>';
 
 print '<tr class="oddeven">';
 print '<td width="80%">'.$langs->trans("AddEmailPhoneTownInContactList").'</td>';
-print '<td>&nbsp</td>';
+print '<td>&nbsp;</td>';
 print '<td class="center">';
 if (!empty($conf->global->CONTACT_SHOW_EMAIL_PHONE_TOWN_SELECTLIST)) {
 	print '<a class="reposition" href="'.$_SERVER['PHP_SELF'].'?action=setaddemailphonetownincontactlist&token='.newToken().'&value=0">';
@@ -830,7 +831,7 @@ if (!empty($conf->expedition->enabled)) {
 	if (!empty($conf->global->MAIN_FEATURES_LEVEL)) {	// Visible on experimental only because seems to not be implemented everywhere (only on proposal)
 		print '<tr class="oddeven">';
 		print '<td width="80%">'.$langs->trans("AskForPreferredShippingMethod").'</td>';
-		print '<td>&nbsp</td>';
+		print '<td>&nbsp;</td>';
 		print '<td class="center">';
 		if (!empty($conf->global->SOCIETE_ASK_FOR_SHIPPING_METHOD))
 		{
@@ -848,7 +849,7 @@ if (!empty($conf->expedition->enabled)) {
 // Disable Prospect/Customer thirdparty type
 print '<tr class="oddeven">';
 print '<td width="80%">'.$langs->trans("DisableProspectCustomerType").'</td>';
-print '<td>&nbsp</td>';
+print '<td>&nbsp;</td>';
 print '<td class="center">';
 if (!empty($conf->global->SOCIETE_DISABLE_PROSPECTSCUSTOMERS))
 {
@@ -861,16 +862,18 @@ if (!empty($conf->global->SOCIETE_DISABLE_PROSPECTSCUSTOMERS))
 print '</a></td>';
 print '</tr>';
 
-// Default Prospect/Customer thirdparty type on customer création
-print '<tr class="oddeven">';
-print '<td width="80%">'.$langs->trans("DefaultCustomerType").'</td>';
-print '<td>';
-print $formcompany->selectProspectCustomerType($conf->global->THIRDPARTY_CUSTOMERTYPE_BY_DEFAULT, 'defaultcustomertype', 'defaultcustomertype', 'admin');
-print '</td>';
-print '<td class="center">';
-print '<input type="submit" class="button" name="THIRDPARTY_CUSTOMERTYPE_BY_DEFAULT" value="'.$langs->trans("Modify").'">';
-print '</td>';
-print '</tr>';
+if (empty($conf->global->SOCIETE_DISABLE_PROSPECTSCUSTOMERS)) {
+	// Default Prospect/Customer thirdparty type on customer création
+	print '<tr class="oddeven">';
+	print '<td>'.$langs->trans("DefaultCustomerType").'</td>';
+	print '<td>';
+	print $formcompany->selectProspectCustomerType($conf->global->THIRDPARTY_CUSTOMERTYPE_BY_DEFAULT, 'defaultcustomertype', 'defaultcustomertype', 'admin');
+	print '</td>';
+	print '<td class="center">';
+	print '<input type="submit" class="button reposition" name="THIRDPARTY_CUSTOMERTYPE_BY_DEFAULT" value="'.$langs->trans("Modify").'">';
+	print '</td>';
+	print '</tr>';
+}
 
 print '</table>';
 print '</div>';
